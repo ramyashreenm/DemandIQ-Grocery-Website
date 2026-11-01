@@ -62,6 +62,7 @@ const products=[
 {name:"Lentils",category:"Pantry",emoji:"🫘",price:"₹95 / kg",tag:"Pantry staple",sales:50},
 {name:"Frozen peas",category:"Frozen",emoji:"🫛",price:"₹80 / pack",tag:"Frozen",sales:35}
 ];
+  const API_URL = "https://demandiq-backend-0l65.onrender.com";
 let loggedIn=sessionStorage.getItem("demandiq-grocery-login")==="yes";
 const views=["home","groceries","forecast","how","impact","login"];
 function go(page){if(!views.includes(page))page="home";if(page==="forecast"&&!loggedIn){toast("Log in to use the demand planner.");page="login"}document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById("view-"+page).classList.add("active");document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));document.getElementById("navAccount").textContent=loggedIn?"Logout ↗":"Login ↗";window.scrollTo({top:0,behavior:"smooth"});if(page==="groceries")renderProducts();}
