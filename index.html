@@ -47,6 +47,7 @@
 <footer class="footer"><strong>DemandIQ</strong><span>Grocery demand planning · Fresh stock, less waste</span><span>SDG 12 · Responsible Consumption and Production</span></footer>
 <div class="toast" id="toast" role="status"></div>
 <script>
+  
 const products=[
 {name:"Bananas",category:"Produce",emoji:"🍌",price:"₹45 / dozen",tag:"Fresh pick",sales:130},
 {name:"Tomatoes",category:"Produce",emoji:"🍅",price:"₹35 / kg",tag:"Fresh pick",sales:95},
@@ -72,9 +73,121 @@ function toast(msg){const el=document.getElementById("toast");el.textContent=msg
 const $=id=>document.getElementById(id);$("itemSelect").innerHTML=products.map(p=>`<option value="${p.name}">${p.name} — ${p.category}</option>`).join("");
 function updateLabels(){$("salesLabel").textContent=$("weeklySales").value+" units";$("stockLabel").textContent=$("currentStock").value+" units";const n=+$("demandChange").value;$("changeLabel").textContent=(n>0?"+":"")+n+"%"}
 function calculate(){const item=products.find(p=>p.name===$("itemSelect").value)||products[0];const sales=+$("weeklySales").value,stock=+$("currentStock").value,change=+$("demandChange").value,bufferPct=+$("safetyStock").value;const demand=Math.max(0,Math.ceil(sales*(1+change/100)));const buffer=Math.ceil(demand*bufferPct/100);const order=Math.max(0,demand+buffer-stock);$("orderResult").textContent=order+" units";$("expectedDemand").textContent=demand+" units";$("stockResult").textContent=stock+" units";$("bufferResult").textContent=buffer+" units";$("resultSummary").textContent=order===0?`Your current ${item.name.toLowerCase()} stock appears sufficient for the estimated next-week demand.`:`For ${item.name.toLowerCase()}, consider ordering about ${order} units to cover estimated demand and the selected buffer.`;$("recommendation").textContent=order===0?"Recommendation: you may have enough stock for now. Check product freshness and expiry before deciding not to reorder.":"Recommendation: use this quantity as a starting point. Check expiry dates, storage capacity, supplier lead time and actual sales before placing an order.";$("stockBar").style.width=Math.min(100,stock/Math.max(1,demand+buffer)*100)+"%";$("needBar").style.width=Math.min(100,demand/Math.max(1,demand+buffer)*100)+"%"}
-["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));$("calculate").addEventListener("click",()=>{updateLabels();calculate();toast("Grocery restock estimate updated.")});
-$("loginForm").addEventListener("submit",e=>{e.preventDefault();if(!$("email").value.trim()||!$("password").value){toast("Enter your email and password.");return}loggedIn=true;sessionStorage.setItem("demandiq-grocery-login","yes");$("loginForm").reset();$("navAccount").textContent="Logout ↗";go("forecast");toast("Demo login successful. Welcome to DemandIQ.")});
-updateLabels();calculate();renderProducts();
+["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));ateLabels();
+$("calculate").addEventListener("click", async () => {
+    updateLabels();
+    calculate();
+
+    const item = products.find(p => p.name === $("itemSelect").value);
+
+    try {
+        // Get products from MySQL
+        let response = await fetch(`${API_URL}/api/products`);
+        let dbProducts = await response.json();
+
+        let dbProduct = dbProducts.find(p => p.name === item.name);
+
+        // Add product if it does not exist
+        if (!dbProduct) {
+            response = await fetch(`${API_URL}/api/products`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: item.name,
+                    category: item.category,
+                    price: Number(item.price.replace(/[^\d.]/g, "")),
+                    stock: Number($("currentStock").value)
+                })
+            });
+
+            const added = await response.json();
+
+            if (!response.ok) {
+                toast(added.message || "Could not save product.");
+                return;
+            }
+
+            response = await fetch(`${API_URL}/api/products`);
+            dbProducts = await response.json();
+            dbProduct = dbProducts.find(p => p.name === item.name);
+        }
+
+        // Save demand plan in MySQL
+        response = await fetch(`${API_URL}/api/demand-plans`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                product_id: dbProduct.id,
+                weekly_sales: Number($("weeklySales").value),
+                demand_change: Number($("demandChange").value),
+                safety_stock: Number($("safetyStock").value)
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast(data.message || "Could not save demand plan.");
+            return;
+        }
+
+        $("orderResult").textContent = data.suggested_order + " units";
+        toast("Demand plan saved successfully!");
+
+    } catch (error) {
+        console.error(error);
+        toast("Could not connect to the database.");
+    }
+});
+
+$("loginForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const email = $("email").value.trim();
+    const password = $("password").value;
+
+    if (!email || !password) {
+        toast("Enter your email and password.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast(data.message || "Login failed.");
+            return;
+        }
+
+        loggedIn = true;
+        sessionStorage.setItem("demandiq-grocery-login", "yes");
+        sessionStorage.setItem("demandiq-token", data.token);
+
+        $("loginForm").reset();
+        go("forecast");
+        toast("Login successful. Welcome to DemandIQ!");
+
+    } catch (error) {
+        toast("Could not connect to the server.");
+        console.error(error);
+    }
+});
+
+updateLabels();
+calculate();
+renderProducts();
 </script>
 </body>
 </html>
