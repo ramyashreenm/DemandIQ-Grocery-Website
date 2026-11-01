@@ -76,7 +76,7 @@ function updateLabels(){$("salesLabel").textContent=$("weeklySales").value+" uni
 function calculate(){const item=products.find(p=>p.name===$("itemSelect").value)||products[0];const sales=+$("weeklySales").value,stock=+$("currentStock").value,change=+$("demandChange").value,bufferPct=+$("safetyStock").value;const demand=Math.max(0,Math.ceil(sales*(1+change/100)));const buffer=Math.ceil(demand*bufferPct/100);const order=Math.max(0,demand+buffer-stock);$("orderResult").textContent=order+" units";$("expectedDemand").textContent=demand+" units";$("stockResult").textContent=stock+" units";$("bufferResult").textContent=buffer+" units";$("resultSummary").textContent=order===0?`Your current ${item.name.toLowerCase()} stock appears sufficient for the estimated next-week demand.`:`For ${item.name.toLowerCase()}, consider ordering about ${order} units to cover estimated demand and the selected buffer.`;$("recommendation").textContent=order===0?"Recommendation: you may have enough stock for now. Check product freshness and expiry before deciding not to reorder.":"Recommendation: use this quantity as a starting point. Check expiry dates, storage capacity, supplier lead time and actual sales before placing an order.";$("stockBar").style.width=Math.min(100,stock/Math.max(1,demand+buffer)*100)+"%";$("needBar").style.width=Math.min(100,demand/Math.max(1,demand+buffer)*100)+"%"}
 ["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));ateLabels();
 $("calculate").addEventListener("click", async () => {
-    updateLabels();
+    
     calculate();
 
     const item = products.find(p => p.name === $("itemSelect").value);
