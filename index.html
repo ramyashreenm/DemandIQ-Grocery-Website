@@ -36,8 +36,69 @@
 
 <section class="view" id="view-groceries"><div class="wrap"><div class="page-intro"><span class="eyebrow">GROCERY CATALOGUE</span><h1>Everyday groceries, organised.</h1><p>Browse grocery items by category. Search for an item or filter the list to focus on the stock you want to plan.</p></div><div class="toolbar"><input id="productSearch" class="search" type="search" placeholder="Search groceries…"><select id="categoryFilter" class="filter" aria-label="Filter by category"><option value="All">All categories</option><option>Produce</option><option>Dairy</option><option>Bakery</option><option>Pantry</option><option>Protein</option><option>Frozen</option></select></div><div class="products" id="productGrid"></div></div></section>
 
-<section class="view" id="view-forecast"><div class="wrap"><div class="page-intro"><span class="eyebrow">GROCERY DEMAND PLANNER</span><h1>How much should you stock?</h1><p>Enter recent sales, current stock and expected demand changes to get a simple suggested order quantity. This is a demo estimate, not a live sales prediction.</p></div><div class="dashboard-grid"><div class="panel"><h3>Planning inputs</h3><p>Choose a grocery item and adjust the numbers for your next restock.</p><div class="form-row"><label for="itemSelect">Grocery item</label><select id="itemSelect" class="filter" style="width:100%"></select></div><div class="form-row"><label for["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));
-<section class="view" id="view-how"><div class="wrap"><div class="page-intro"><span class="eyebrow">HOW IT WORKS</span><h1>From grocery sales to smarter stock.</h1><p>A simple process for making more informed restocking decisions, while remembering that real demand can change.</p></div><div class="steps"><article class="step"><span class="step-no">STEP 01</span><h3>Record recent sales</h3><p>Start with how many units of each grocery item sold during the last week.</p></article><article class="step"><span class="step-no">STEP 02</span><h3>Check stock on hand</h3><p>Count what is available and remove expired or damaged items from usable stock.</p></article><article class="step"><span class="step-no">STEP 03</span><h3>Adjust expected demand</h3><p>Account for busy days, local events, weather or seasonal shopping changes.</p></article><article class="step"><span class="step-no">STEP 04</span><h3>Plan a restock</h3><p>Use the suggested quantity as a starting point, then check expiry and delivery timing.</p></article></div><div class="banner"><div><span class="eyebrow" style="color:var(--lime)">READY TO TRY IT?</span><h2>Make your next grocery order count.</h2><p>Use the demo planner to estimate how many units to restock.</p></div><button class="btn" data-page="forecast">Go to demand planner →</button></div></div></section>
+<section class="view" id="view-forecast">
+<div class="wrap">
+<div class="page-intro">
+<span class="eyebrow">GROCERY DEMAND PLANNER</span>
+<h1>How much should you stock?</h1>
+<p>Enter recent sales, current stock and expected demand changes to get a simple suggested order quantity. This is a demo estimate, not a live sales prediction.</p>
+</div>
+
+<div class="dashboard-grid">
+<div class="panel">
+<h3>Planning inputs</h3>
+<p>Choose a grocery item and adjust the numbers for your next restock.</p>
+
+<div class="form-row">
+<label for="itemSelect">Grocery item</label>
+<select id="itemSelect" class="filter" style="width:100%"></select>
+</div>
+
+<div class="form-row">
+<label for="weeklySales">Units sold last week <output id="salesLabel">100 units</output></label>
+<input type="range" id="weeklySales" min="5" max="500" value="100" step="5">
+</div>
+
+<div class="form-row">
+<label for="currentStock">Current stock <output id="stockLabel">30 units</output></label>
+<input type="range" id="currentStock" min="0" max="300" value="30" step="5">
+</div>
+
+<div class="form-row">
+<label for="demandChange">Expected demand change <output id="changeLabel">+10%</output></label>
+<input type="range" id="demandChange" min="-30" max="50" value="10" step="5">
+</div>
+
+<div class="form-row">
+<label for="safetyStock">Extra buffer</label>
+<select id="safetyStock" class="filter" style="width:100%">
+<option value="0">No extra buffer</option>
+<option value="10" selected>10% buffer</option>
+<option value="20">20% buffer</option>
+</select>
+</div>
+
+<button class="btn btn-primary" id="calculate" style="width:100%">Calculate suggested order →</button>
+</div>
+
+<div class="result-panel">
+<span class="eyebrow">SUGGESTED RESTOCK</span>
+<div class="result-number" id="orderResult">90 units</div>
+<p id="resultSummary">Estimated stock needed to cover next week's demand, less what you already have.</p>
+<div class="result-line"><span>Expected weekly demand</span><b id="expectedDemand">110 units</b></div>
+<div class="result-line"><span>Current stock</span><b id="stockResult">30 units</b></div>
+<div class="result-line"><span>Safety buffer</span><b id="bufferResult">11 units</b></div>
+<div class="recommendation" id="recommendation">Recommendation: prepare a restock order based on the estimate, then check expiry dates and supplier lead time.</div>
+<div class="bar-row"><span>Current stock</span><div class="bar"><i id="stockBar"></i></div></div>
+<div class="bar-row"><span>Expected need</span><div class="bar"><i id="needBar" style="background:#f3a65a"></i></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="view" id="view-how">
+<div class="wrap">
+<div class="page-intro"><span class="eyebrow">HOW IT WORKS</span><h1>From grocery sales to smarter stock.</h1><p>A simple process for making more informed restocking decisions, while remembering that real demand can change.</p></div><div class="steps"><article class="step"><span class="step-no">STEP 01</span><h3>Record recent sales</h3><p>Start with how many units of each grocery item sold during the last week.</p></article><article class="step"><span class="step-no">STEP 02</span><h3>Check stock on hand</h3><p>Count what is available and remove expired or damaged items from usable stock.</p></article><article class="step"><span class="step-no">STEP 03</span><h3>Adjust expected demand</h3><p>Account for busy days, local events, weather or seasonal shopping changes.</p></article><article class="step"><span class="step-no">STEP 04</span><h3>Plan a restock</h3><p>Use the suggested quantity as a starting point, then check expiry and delivery timing.</p></article></div><div class="banner"><div><span class="eyebrow" style="color:var(--lime)">READY TO TRY IT?</span><h2>Make your next grocery order count.</h2><p>Use the demo planner to estimate how many units to restock.</p></div><button class="btn" data-page="forecast">Go to demand planner →</button></div></div></section>
 
 <section class="view" id="view-impact"><div class="wrap"><div class="page-intro"><span class="eyebrow">RESPONSIBLE GROCERY RETAIL</span><h1>Keep shelves ready. Reduce avoidable waste.</h1><p>DemandIQ focuses on grocery stock planning: ordering closer to what customers need can help stores avoid overstocking, protect freshness and use resources more carefully.</p></div><div class="impact-grid"><article class="impact-card"><div class="card-icon">🥬</div><h3>Reduce food waste</h3><p>Fresh foods such as produce, dairy and bakery items can spoil quickly. Smaller, better-timed orders may help reduce items that go unsold before expiry.</p></article><article class="impact-card"><div class="card-icon">📦</div><h3>Improve availability</h3><p>Tracking sales and stock helps store teams spot popular essentials and avoid running out of products customers need.</p></article><article class="impact-card"><div class="card-icon">🚚</div><h3>Plan deliveries better</h3><p>Considering supplier lead time and delivery schedules can support more practical ordering and fewer last-minute restocks.</p></article><article class="impact-card"><div class="card-icon">🌍</div><h3>Support responsible consumption</h3><p>Careful inventory planning aligns with SDG 12: Responsible Consumption and Production, especially the goal of reducing food loss and waste.</p></article></div><div class="banner"><div><span class="eyebrow" style="color:var(--lime)">THE CORE IDEA</span><h2>Order thoughtfully. Waste less.</h2><p>Better grocery planning starts with simple, consistent stock data.</p></div><button class="btn" data-page="forecast">Try the planner →</button></div></div></section>
 
@@ -73,7 +134,7 @@ function toast(msg){const el=document.getElementById("toast");el.textContent=msg
 const $=id=>document.getElementById(id);$("itemSelect").innerHTML=products.map(p=>`<option value="${p.name}">${p.name} — ${p.category}</option>`).join("");
 function updateLabels(){$("salesLabel").textContent=$("weeklySales").value+" units";$("stockLabel").textContent=$("currentStock").value+" units";const n=+$("demandChange").value;$("changeLabel").textContent=(n>0?"+":"")+n+"%"}
 function calculate(){const item=products.find(p=>p.name===$("itemSelect").value)||products[0];const sales=+$("weeklySales").value,stock=+$("currentStock").value,change=+$("demandChange").value,bufferPct=+$("safetyStock").value;const demand=Math.max(0,Math.ceil(sales*(1+change/100)));const buffer=Math.ceil(demand*bufferPct/100);const order=Math.max(0,demand+buffer-stock);$("orderResult").textContent=order+" units";$("expectedDemand").textContent=demand+" units";$("stockResult").textContent=stock+" units";$("bufferResult").textContent=buffer+" units";$("resultSummary").textContent=order===0?`Your current ${item.name.toLowerCase()} stock appears sufficient for the estimated next-week demand.`:`For ${item.name.toLowerCase()}, consider ordering about ${order} units to cover estimated demand and the selected buffer.`;$("recommendation").textContent=order===0?"Recommendation: you may have enough stock for now. Check product freshness and expiry before deciding not to reorder.":"Recommendation: use this quantity as a starting point. Check expiry dates, storage capacity, supplier lead time and actual sales before placing an order.";$("stockBar").style.width=Math.min(100,stock/Math.max(1,demand+buffer)*100)+"%";$("needBar").style.width=Math.min(100,demand/Math.max(1,demand+buffer)*100)+"%"}
-["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));ateLabels));
+["weeklySales","currentStock","demandChange","safetyStock","itemSelect"].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();calculate()}));
 $("calculate").addEventListener("click", async () => {
     
     calculate();
