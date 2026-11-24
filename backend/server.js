@@ -251,6 +251,90 @@ app.post("/api/demand-plans", async (req, res) => {
         });
     }
 });
+
+// DemandIQ AI Assistant
+app.post("/api/ai-assistant", async (req, res) => {
+    try {
+        const question = req.body.question;
+
+        if (
+            typeof question !== "string" ||
+            question.trim().length === 0 ||
+            question.length > 500
+        ) {
+            return res.status(400).json({
+                message: "Please enter a question under 500 characters."
+            });
+        }
+
+        if (!process.env.OPENAI_API_KEY) {
+            return res.status(503).json({
+                message: "AI assistant is not configured yet."
+            });
+        }
+
+        // Get current grocery inventory from your database
+        const [products] = await pool.query(
+            "SELECT name, category, price, stock FROM products"
+        );
+
+        const inventory = products.map(product => ({
+            name: product.name,
+            category: product.category,
+            price: Number(product.price),
+            stock: Number(product.stock)
+        }));
+
+        const response = await fetch(
+            "https://api.openai.com/v1/responses",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4.1-mini",
+                    instructions:
+                        "You are DemandIQ, a helpful grocery inventory assistant. " +
+                        "Use the provided inventory to answer questions about products, " +
+                        "stock, prices, and restocking. Never invent inventory values. " +
+                        "If information is missing, say so. Keep answers simple and concise.",
+                    input:
+                        "Current inventory:\n" +
+                        JSON.stringify(inventory) +
+                        "\n\nUser question: " +
+                        question.trim()
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("OpenAI API error:", data.error?.message);
+            return res.status(502).json({
+                message: "The AI service could not answer right now."
+            });
+        }
+
+        const answer = data.output_text;
+
+        if (!answer) {
+            return res.status(502).json({
+                message: "The AI returned an empty answer."
+            });
+        }
+
+        res.json({ answer });
+
+    } catch (error) {
+        console.error("AI assistant error:", error.message);
+        res.status(500).json({
+            message: "Something went wrong with the AI assistant."
+        });
+    }
+});
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
