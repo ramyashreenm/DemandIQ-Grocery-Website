@@ -69,6 +69,84 @@ footer{text-align:center;padding:25px;border-top:1px solid var(--line);color:var
  .grid,.products{grid-template-columns:1fr}
  nav button{padding:8px;font-size:12px}
 }
+  /* DemandIQ AI Chat */
+#aiChatButton {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: #236b48;
+  color: white;
+  border: none;
+  padding: 15px 22px;
+  border-radius: 30px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+#aiChatBox {
+  display: none;
+  position: fixed;
+  bottom: 85px;
+  right: 25px;
+  width: 330px;
+  height: 430px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px #0002;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+#aiChatHeader {
+  background: #236b48;
+  color: white;
+  padding: 15px;
+  font-weight: bold;
+}
+
+#aiMessages {
+  height: 300px;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.aiMessage {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #f1f5f1;
+  white-space: pre-wrap;
+}
+
+.aiUserMessage {
+  background: #e4f0ff;
+  text-align: right;
+}
+
+#aiChatInputArea {
+  display: flex;
+  gap: 5px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+#aiQuestion {
+  min-width: 0;
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+#aiSend {
+  background: #236b48;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+}
 </style>
 </head>
 <body>
@@ -527,6 +605,93 @@ $("authForm").addEventListener("submit",async e => {
 updateLabels();
 calculateLocal();
 renderProducts();
+</script>
+  <button id="aiChatButton">💬 Ask DemandIQ</button>
+
+<div id="aiChatBox">
+  <div id="aiChatHeader">
+    DemandIQ AI Assistant
+    <button onclick="document.getElementById('aiChatBox').style.display='none'"
+      style="float:right;background:transparent;color:white;border:0;">
+      ✕
+    </button>
+  </div>
+
+  <div id="aiMessages">
+    <div class="aiMessage">
+      Hi! Ask me about grocery products or demand planning.
+    </div>
+  </div>
+
+  <div id="aiChatInputArea">
+    <input id="aiQuestion" placeholder="Ask a question..." />
+    <button id="aiSend">Send</button>
+  </div>
+</div>
+  <script>
+const aiChatButton = document.getElementById("aiChatButton");
+const aiChatBox = document.getElementById("aiChatBox");
+const aiMessages = document.getElementById("aiMessages");
+const aiQuestion = document.getElementById("aiQuestion");
+const aiSend = document.getElementById("aiSend");
+
+aiChatButton.addEventListener("click", () => {
+  aiChatBox.style.display =
+    aiChatBox.style.display === "block" ? "none" : "block";
+});
+
+function addAIMessage(message, isUser = false) {
+  const div = document.createElement("div");
+  div.className = "aiMessage" + (isUser ? " aiUserMessage" : "");
+  div.textContent = message;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop = aiMessages.scrollHeight;
+}
+
+async function sendAIQuestion() {
+  const question = aiQuestion.value.trim();
+  if (!question) return;
+
+  addAIMessage(question, true);
+  aiQuestion.value = "";
+  aiSend.disabled = true;
+  aiSend.textContent = "Wait...";
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/ai-assistant",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ question })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "AI request failed");
+    }
+
+    addAIMessage(data.answer || "No answer received.");
+  } catch (error) {
+    console.error(error);
+    addAIMessage("Sorry, I couldn't connect. Please try again.");
+  } finally {
+    aiSend.disabled = false;
+    aiSend.textContent = "Send";
+  }
+}
+
+aiSend.addEventListener("click", sendAIQuestion);
+
+aiQuestion.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    sendAIQuestion();
+  }
+});
 </script>
 </body>
 </html>
